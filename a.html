@@ -3,83 +3,95 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Búsqueda del Tesoro AR.js</title>
+  <title>🔎 Búsqueda del Tesoro AR</title>
 
   <!-- Librerías -->
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.0/aframe/build/aframe-ar.min.js"></script>
 
   <style>
-    html, body { margin: 0; height: 100%; overflow: hidden; }
-    #message {
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      background: black;
+    }
+
+    /* Interfaz fija en pantalla */
+    #ui {
       position: fixed;
-      top: 12px; left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,0.75);
-      color: #fff;
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-family: sans-serif;
-      display: none;
+      top: 0;
+      left: 0;
+      width: 100%;
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.6);
       z-index: 10;
     }
+
+    #status {
+      font-size: 1.2em;
+      margin-top: 5px;
+    }
+
     #final {
       position: fixed;
       inset: 0;
       display: none;
-      align-items: center;
       justify-content: center;
-      background: rgba(0,0,0,0.8);
-      color: #fff;
-      flex-direction: column;
-      font-family: sans-serif;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.85);
+      color: gold;
+      font-size: 2em;
+      font-weight: bold;
       z-index: 20;
+      animation: fadeIn 2s;
     }
-    #final button {
-      margin-top: 12px;
-      padding: 8px 14px;
-      border: none;
-      border-radius: 8px;
-      background: #FFD700;
-      cursor: pointer;
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
   </style>
 </head>
 
 <body>
-  <div id="message"></div>
-  <div id="final">
-    <h2>🎉 ¡Tesoro encontrado! 🎉</h2>
-    <p>Completaste la búsqueda del tesoro en el Edificio Sacré Coeur.</p>
-    <button onclick="location.reload()">Jugar otra vez</button>
+  <!-- UI fija -->
+  <div id="ui">
+    <div>🧭 <b>Búsqueda del Tesoro AR</b></div>
+    <div id="status">Escaneá el marcador inicial (HIRO)...</div>
   </div>
 
+  <div id="final">🎉 ¡Encontraste el tesoro! 🏆</div>
+
+  <!-- Escena AR -->
   <a-scene
     vr-mode-ui="enabled: false"
     embedded
     renderer="logarithmicDepthBuffer: true;"
     arjs="sourceType: webcam; debugUIEnabled: false;">
     
-    <!-- 1️⃣ Marcador HIRO -->
-    <a-marker id="hiro" preset="hiro">
-      <a-box position="0 0.25 0" depth="0.3" height="0.3" width="0.3"
-             color="#FFD700"
+    <!-- Marcador 1: HIRO (inicio) -->
+    <a-marker id="hiroMarker" preset="hiro">
+      <a-text value="Inicio del juego" color="yellow" position="0 0.8 0" align="center"></a-text>
+      <a-box position="0 0.25 0" color="orange" depth="0.4" height="0.4" width="0.4"
              animation="property: rotation; to: 0 360 0; loop: true; dur: 3000"></a-box>
-      <a-text value="Inicio de la aventura" position="0 0.8 0" rotation="-90 0 0" align="center" color="#FFF"></a-text>
     </a-marker>
 
-    <!-- 2️⃣ Marcador KANJI -->
-    <a-marker id="kanji" preset="kanji">
-      <a-sphere position="0 0.35 0" radius="0.25" color="#00BFFF"
-                animation="property: scale; dir: alternate; to: 1.3 1.3 1.3; loop: true; dur: 1000"></a-sphere>
-      <a-text value="Segunda pista: busca la escalera principal" position="0 0.9 0" rotation="-90 0 0" align="center" color="#FFF" width="2"></a-text>
+    <!-- Marcador 2: KANJI -->
+    <a-marker id="kanjiMarker" preset="kanji">
+      <a-sphere color="deepskyblue" radius="0.3" position="0 0.25 0"
+                animation="property: position; to: 0 0.5 0; dir: alternate; loop: true; dur: 1000"></a-sphere>
+      <a-text value="Pista intermedia" color="lightblue" position="0 0.8 0" align="center"></a-text>
     </a-marker>
 
-    <!-- 3️⃣ Marcador LETTER A -->
-    <a-marker id="letterA" type="pattern" url="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/three.js/examples/marker-training/examples/pattern-files/pattern-letterA.patt">
-      <a-cone position="0 0.4 0" height="0.8" radius-bottom="0.3" color="#32CD32"
-              animation="property: rotation; to: 0 360 0; loop: true; dur: 2500"></a-cone>
-      <a-text value="Última pista: el tesoro está cerca del aula!" position="0 1 0" rotation="-90 0 0" align="center" color="#FFF" width="2"></a-text>
+    <!-- Marcador 3: letterA -->
+    <a-marker id="aMarker" type="pattern" preset="letterA">
+      <a-torus-knot color="lime" radius="0.3" position="0 0.25 0"
+                    animation="property: rotation; to: 360 360 0; loop: true; dur: 2500"></a-torus-knot>
+      <a-text value="Tesoro" color="lime" position="0 0.8 0" align="center"></a-text>
     </a-marker>
 
     <a-entity camera></a-entity>
@@ -87,53 +99,37 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      const msg = document.getElementById("message");
-      const finalScreen = document.getElementById("final");
-      const markers = ["hiro", "kanji", "letterA"];
-      const found = new Set();
+      const status = document.getElementById("status");
+      const final = document.getElementById("final");
 
-      function showMessage(text, timeout = 2000) {
-        msg.textContent = text;
-        msg.style.display = "block";
-        setTimeout(() => (msg.style.display = "none"), timeout);
-      }
+      const sequence = ["hiroMarker", "kanjiMarker", "aMarker"];
+      let currentStep = 0;
 
-      function beep(f = 440, t = 0.15) {
-        try {
-          const ctx = new (window.AudioContext || window.webkitAudioContext)();
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.connect(gain); gain.connect(ctx.destination);
-          osc.frequency.value = f; osc.start();
-          gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.01);
-          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + t);
-          setTimeout(() => { osc.stop(); ctx.close(); }, (t + 0.05) * 1000);
-        } catch (e) { console.warn("No se pudo reproducir sonido", e); }
-      }
+      const showMessage = (text) => {
+        status.textContent = text;
+      };
 
-      function markerFound(id) {
-        if (found.has(id)) return;
-        found.add(id);
-        showMessage(`Pista encontrada (${found.size}/3)`);
-        beep(700 - found.size * 100, 0.2);
-
-        if (found.size === 3) {
-          setTimeout(() => {
-            finalScreen.style.display = "flex";
-            beep(660, 0.2); setTimeout(()=>beep(880,0.2),250); setTimeout(()=>beep(660,0.25),500);
-          }, 600);
+      const checkStep = (markerId) => {
+        const expected = sequence[currentStep];
+        if (markerId === expected) {
+          currentStep++;
+          if (currentStep < sequence.length) {
+            showMessage(`✅ ¡Bien! Ahora buscá el marcador siguiente (${sequence[currentStep]})`);
+          } else {
+            showMessage("🎉 ¡Todos encontrados!");
+            final.style.display = "flex";
+          }
+        } else {
+          showMessage("⚠️ Ese marcador aún no corresponde...");
         }
-      }
+      };
 
-      markers.forEach(id => {
-        const m = document.getElementById(id);
-        if (!m) return console.warn("No se encontró marker:", id);
-        m.addEventListener("markerFound", () => markerFound(id));
-        m.addEventListener("markerLost", () => showMessage("Marcador perdido"));
+      sequence.forEach(id => {
+        const marker = document.getElementById(id);
+        marker.addEventListener("markerFound", () => checkStep(id));
       });
 
-      console.log("🎯 Escena lista: buscá los tres marcadores (hiro, kanji, letterA).");
+      console.log("🧭 Juego AR listo. Escaneá los marcadores en orden: HIRO → KANJI → LetterA");
     });
   </script>
 </body>

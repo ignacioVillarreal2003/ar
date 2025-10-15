@@ -3,22 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Prueba AR.js - marcador HIRO</title>
+  <title>Búsqueda del Tesoro AR.js</title>
 
   <!-- Librerías -->
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.0/aframe/build/aframe-ar.min.js"></script>
 
   <style>
-    html, body {
-      margin: 0;
-      height: 100%;
-      overflow: hidden;
-    }
+    html, body { margin: 0; height: 100%; overflow: hidden; }
     #message {
       position: fixed;
-      top: 12px;
-      left: 50%;
+      top: 12px; left: 50%;
       transform: translateX(-50%);
       background: rgba(0,0,0,0.75);
       color: #fff;
@@ -28,11 +23,36 @@
       display: none;
       z-index: 10;
     }
+    #final {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      flex-direction: column;
+      font-family: sans-serif;
+      z-index: 20;
+    }
+    #final button {
+      margin-top: 12px;
+      padding: 8px 14px;
+      border: none;
+      border-radius: 8px;
+      background: #FFD700;
+      cursor: pointer;
+    }
   </style>
 </head>
 
 <body>
-  <div id="message">Marcador HIRO detectado ✅</div>
+  <div id="message"></div>
+  <div id="final">
+    <h2>🎉 ¡Tesoro encontrado! 🎉</h2>
+    <p>Completaste la búsqueda del tesoro en el Edificio Sacré Coeur.</p>
+    <button onclick="location.reload()">Jugar otra vez</button>
+  </div>
 
   <a-scene
     vr-mode-ui="enabled: false"
@@ -40,12 +60,26 @@
     renderer="logarithmicDepthBuffer: true;"
     arjs="sourceType: webcam; debugUIEnabled: false;">
     
-    <!-- Marcador HIRO -->
-    <a-marker id="hiroMarker" preset="hiro">
+    <!-- 1️⃣ Marcador HIRO -->
+    <a-marker id="hiro" preset="hiro">
       <a-box position="0 0.25 0" depth="0.3" height="0.3" width="0.3"
              color="#FFD700"
-             animation="property: rotation; to: 0 360 0; loop: true; dur: 3000">
-      </a-box>
+             animation="property: rotation; to: 0 360 0; loop: true; dur: 3000"></a-box>
+      <a-text value="Inicio de la aventura" position="0 0.8 0" rotation="-90 0 0" align="center" color="#FFF"></a-text>
+    </a-marker>
+
+    <!-- 2️⃣ Marcador KANJI -->
+    <a-marker id="kanji" preset="kanji">
+      <a-sphere position="0 0.35 0" radius="0.25" color="#00BFFF"
+                animation="property: scale; dir: alternate; to: 1.3 1.3 1.3; loop: true; dur: 1000"></a-sphere>
+      <a-text value="Segunda pista: busca la escalera principal" position="0 0.9 0" rotation="-90 0 0" align="center" color="#FFF" width="2"></a-text>
+    </a-marker>
+
+    <!-- 3️⃣ Marcador LETTER A -->
+    <a-marker id="letterA" type="pattern" url="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/three.js/examples/marker-training/examples/pattern-files/pattern-letterA.patt">
+      <a-cone position="0 0.4 0" height="0.8" radius-bottom="0.3" color="#32CD32"
+              animation="property: rotation; to: 0 360 0; loop: true; dur: 2500"></a-cone>
+      <a-text value="Última pista: el tesoro está cerca del aula!" position="0 1 0" rotation="-90 0 0" align="center" color="#FFF" width="2"></a-text>
     </a-marker>
 
     <a-entity camera></a-entity>
@@ -54,17 +88,52 @@
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const msg = document.getElementById("message");
-      const marker = document.getElementById("hiroMarker");
+      const finalScreen = document.getElementById("final");
+      const markers = ["hiro", "kanji", "letterA"];
+      const found = new Set();
 
-      marker.addEventListener("markerFound", () => {
+      function showMessage(text, timeout = 2000) {
+        msg.textContent = text;
         msg.style.display = "block";
+        setTimeout(() => (msg.style.display = "none"), timeout);
+      }
+
+      function beep(f = 440, t = 0.15) {
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.frequency.value = f; osc.start();
+          gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + t);
+          setTimeout(() => { osc.stop(); ctx.close(); }, (t + 0.05) * 1000);
+        } catch (e) { console.warn("No se pudo reproducir sonido", e); }
+      }
+
+      function markerFound(id) {
+        if (found.has(id)) return;
+        found.add(id);
+        showMessage(`Pista encontrada (${found.size}/3)`);
+        beep(700 - found.size * 100, 0.2);
+
+        if (found.size === 3) {
+          setTimeout(() => {
+            finalScreen.style.display = "flex";
+            beep(660, 0.2); setTimeout(()=>beep(880,0.2),250); setTimeout(()=>beep(660,0.25),500);
+          }, 600);
+        }
+      }
+
+      markers.forEach(id => {
+        const m = document.getElementById(id);
+        if (!m) return console.warn("No se encontró marker:", id);
+        m.addEventListener("markerFound", () => markerFound(id));
+        m.addEventListener("markerLost", () => showMessage("Marcador perdido"));
       });
 
-      marker.addEventListener("markerLost", () => {
-        msg.style.display = "none";
-      });
-
-      console.log("✅ Escena AR lista. Escaneá el marcador HIRO.");
+      console.log("🎯 Escena lista: buscá los tres marcadores (hiro, kanji, letterA).");
     });
   </script>
 </body>

@@ -3,265 +3,35 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Laboratorio: Búsqueda del Tesoro (AR.js + A-Frame)</title>
+  <title>Prueba AR.js - hiro sólo</title>
   <!-- A-Frame y AR.js desde CDN -->
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.3.2/aframe/build/aframe-ar.js"></script>
   <style>
-    body, html { margin: 0; height: 100%; }
-    #overlay {
-      position: fixed; left: 0; right: 0; top: 0; bottom: 0;
-      display: flex; align-items: center; justify-content: center;
-      pointer-events: none; z-index: 10;
-    }
-    #message {
-      pointer-events: auto;
-      background: rgba(0,0,0,0.6); color: #fff; padding: 18px 24px; border-radius: 12px;
-      font-family: Arial, sans-serif; font-size: 18px; display: none;
-    }
-    #final-screen{
-      position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.7); z-index: 100;
-    }
-    #final-box { background: white; padding: 24px; border-radius: 12px; text-align: center; max-width: 90%; }
-    a.button { display:inline-block; margin-top:12px; padding:8px 14px; background:#2b6cb0; color:white; border-radius:8px; text-decoration:none; }
-    /* HUD: progreso y controles */
-    #hud {
-      position: fixed; left: 12px; top: 12px; right: 12px; z-index: 120; display:flex; gap:12px; align-items:center; justify-content:space-between;
-      pointer-events: auto;
-    }
-    #progress {
-      flex: 1; background: rgba(0,0,0,0.45); color: #fff; padding:10px 12px; border-radius:10px; display:flex; align-items:center; gap:12px; font-family: Arial, sans-serif;
-    }
-    #progress .bar { height: 10px; background: rgba(255,255,255,0.15); border-radius: 6px; overflow: hidden; width: 160px; }
-    #progress .bar > i { display:block; height:100%; background: linear-gradient(90deg,#ffd54f,#ff8a65); width:0%; }
-    #marker-list { display:flex; gap:8px; align-items:center; }
-    .marker-pill { padding:6px 8px; border-radius:8px; background: rgba(255,255,255,0.08); color:#fff; font-size:13px; display:flex; gap:8px; align-items:center; }
-    .controls { display:flex; gap:8px; }
-    .controls button { background:#2b6cb0; color:white; border:none; padding:8px 10px; border-radius:8px; cursor:pointer; }
-    .controls button.secondary { background:#4a5568; }
-    #aria-live { position: absolute; left: -9999px; top: auto; width:1px; height:1px; overflow:hidden; }
+    html,body{height:100%;margin:0;font-family:Arial,Helvetica,sans-serif}
+    #message{position:fixed;left:50%;top:12px;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:#fff;padding:10px 14px;border-radius:8px;display:none;z-index:40}
   </style>
 </head>
 <body>
-  <!-- Overlay para mensajes de progreso -->
-  <div id="overlay"><div id="message"></div></div>
-  <div id="aria-live" aria-live="polite" role="status"></div>
-  <!-- HUD: progreso, lista de marcadores encontrados y controles -->
-  <div id="hud">
-    <div id="progress">
-      <div id="marker-list" aria-hidden="false"></div>
-      <div style="margin-left:auto; display:flex; align-items:center; gap:10px;">
-        <div class="bar" aria-hidden="true"><i id="progress-fill"></i></div>
-        <div id="progress-text" style="min-width:80px; text-align:right; font-size:13px; opacity:0.95"></div>
-      </div>
-    </div>
-    <div class="controls">
-      <button id="btn-help" title="Abrir guía de marcadores">Guía</button>
-      <button id="btn-share" title="Generar enlace con progreso">Compartir</button>
-      <button id="btn-reset" class="secondary" title="Reiniciar progreso">Reset</button>
-    </div>
-  </div>
-  <div id="final-screen"><div id="final-box"><h2>¡Tesoro encontrado!</h2><p>Felicitaciones: completaste la búsqueda del tesoro en el Edificio Sacré Coeur.</p><a class="button" href="#" id="close-final">Cerrar</a></div></div>
+  <div id="message">Marcador HIRO detectado</div>
 
-  <!-- Escena A-Frame + AR.js -->
+  <!-- Escena mínima: un único marcador hiro -->
   <a-scene embedded arjs='sourceType: webcam; debugUIEnabled: false;'>
-
-    <!-- Luz y cámara (la cámara la maneja AR.js) -->
-    <a-entity light="type: ambient; intensity: 0.8"></a-entity>
-    <a-entity light="type: directional; intensity: 0.6" position="0 1 0"></a-entity>
-
-  <!-- MARKER 1: preset hiro (inicio / historia) -->
-  <a-marker id="marker-hiro" preset="hiro" data-name="Inicio">
-      <!-- Placa con la introducción -->
-      <a-plane position="0 0 0" rotation="-90 0 0" width="1.5" height="1">
-        <a-material opacity="0.9"></a-material>
-      </a-plane>
-      <a-entity position="0 0.3 0" rotation="-90 0 0">
-        <a-text value="Bienvenido\nComienza la búsqueda:\nEncuentra 3 pistas" align="center" width="1.2" color="#fff" ></a-text>
-      </a-entity>
-      <!-- Flecha animada hacia la siguiente pista -->
-      <a-box position="0 0.02 -0.35" rotation="0 0 0" depth="0.05" height="0.2" width="0.6" animation="property: rotation; to: 0 360 0; loop: true; dur: 3000"></a-box>
+    <a-marker id="marker-hiro" preset="hiro">
+      <a-box position="0 0.25 0" depth="0.3" height="0.3" width="0.3" color="#FFD700" animation="property: rotation; to: 0 360 0; loop: true; dur: 2500"></a-box>
     </a-marker>
-
-  <!-- MARKER 2: preset kanji (pista 2) -->
-  <a-marker id="marker-kanji" preset="kanji" data-name="Pista 1">
-      <!-- Objeto 3D simple que representa una pista -->
-      <a-cylinder position="0 0.35 0" radius="0.2" height="0.4" rotation="0 0 0" animation="property: position; dir: alternate; dur: 1000; to: 0 0.6 0; loop: true"></a-cylinder>
-      <a-entity position="0 0.9 0" rotation="-90 0 0">
-        <a-text value="Pista:\nBusca la estatua en la entrada" align="center" width="1.2"></a-text>
-      </a-entity>
-    </a-marker>
-
-  <!-- MARKER 3: barcode (id=5) - pista final -->
-  <a-marker id="marker-barcode" type="barcode" value="5" data-name="Tesoro">
-      <!-- Tesoro escondido: una caja dorada que gira -->
-      <a-box id="treasure-box" position="0 0.35 0" depth="0.4" height="0.4" width="0.4" material="shader: standard; metalness: 0.8; roughness: 0.2" animation="property: rotation; to: 0 360 0; loop: true; dur: 2500"></a-box>
-      <a-entity position="0 0.9 0" rotation="-90 0 0">
-        <a-text value="Pista final:\nAbre la caja" align="center" width="1.2"></a-text>
-      </a-entity>
-    </a-marker>
-
     <a-entity camera></a-entity>
   </a-scene>
 
   <script>
-    // Lógica de juego mejorada: manejo de marcadores, HUD, persistencia y shareable link
     (function(){
-      // Configuración de marcadores (mantener ids en el DOM)
-      const requiredMarkers = ['marker-hiro', 'marker-kanji', 'marker-barcode'];
-      const markerNames = {};
-      requiredMarkers.forEach(id => {
-        const el = document.getElementById(id);
-        markerNames[id] = (el && el.getAttribute('data-name')) || id;
-      });
-
-      // Persistencia: localStorage key
-      const STORAGE_KEY = 'ar-treasure-found-v1';
-      const messageEl = document.getElementById('message');
-      const ariaLive = document.getElementById('aria-live');
-      const finalScreen = document.getElementById('final-screen');
-      const closeFinal = document.getElementById('close-final');
-      const btnReset = document.getElementById('btn-reset');
-      const btnHelp = document.getElementById('btn-help');
-      const btnShare = document.getElementById('btn-share');
-      const markerListEl = document.getElementById('marker-list');
-      const progressFill = document.getElementById('progress-fill');
-      const progressText = document.getElementById('progress-text');
-
-      // Restore from localStorage or URL param
-      const urlParams = new URLSearchParams(window.location.search);
-      const urlFound = urlParams.get('found');
-      let found = new Set();
-      try{
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if(raw){ JSON.parse(raw).forEach(id => found.add(id)); }
-      }catch(e){ console.warn('No se pudo leer storage', e); }
-      if(urlFound){ urlFound.split(',').forEach(id => { if(requiredMarkers.includes(id)) found.add(id); }); }
-
-      function persist(){
-        try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(found))); }catch(e){ console.warn('No se pudo persistir', e); }
-      }
-
-      function announce(text){
-        ariaLive.textContent = text; // para screenreaders
-      }
-
-      function showMessage(text, timeout = 2200){
-        messageEl.textContent = text;
-        messageEl.style.display = 'block';
-        announce(text);
-        setTimeout(()=>{ messageEl.style.display = 'none'; }, timeout);
-      }
-
-      function playBeep(freq=440, duration=0.18){
-        try{
-          const ctx = new (window.AudioContext || window.webkitAudioContext)();
-          const o = ctx.createOscillator();
-          const g = ctx.createGain();
-          o.connect(g); g.connect(ctx.destination);
-          o.frequency.value = freq;
-          o.type = 'sine';
-          o.start();
-          g.gain.setValueAtTime(0.0001, ctx.currentTime);
-          g.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.01);
-          g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
-          setTimeout(()=>{ o.stop(); ctx.close(); }, (duration+0.05)*1000);
-        }catch(e){ console.warn('Audio API no disponible', e); }
-      }
-
-      function updateHUD(){
-        // update list
-        markerListEl.innerHTML = '';
-        requiredMarkers.forEach(id => {
-          const pill = document.createElement('div');
-          pill.className = 'marker-pill';
-          pill.textContent = markerNames[id];
-          if(found.has(id)){
-            pill.style.opacity = '1';
-            pill.innerHTML = '✅ ' + pill.textContent;
-          }else{
-            pill.style.opacity = '0.6';
-            pill.innerHTML = '▫️ ' + pill.textContent;
-          }
-          markerListEl.appendChild(pill);
-        });
-        // progress bar
-        const pct = Math.round((found.size / requiredMarkers.length) * 100);
-        progressFill.style.width = pct + '%';
-        progressText.textContent = `${found.size}/${requiredMarkers.length}`;
-      }
-
-      function onMarkerFound(id){
-        if(found.has(id)){
-          showMessage(markerNames[id] + ' (ya descubierto)');
-          return;
-        }
-        found.add(id);
-        persist();
-        updateHUD();
-        showMessage(`Pista encontrada: ${markerNames[id]} (${found.size}/${requiredMarkers.length})`);
-        playBeep(600 - found.size*60, 0.16);
-        announce(`${markerNames[id]} encontrado`);
-
-        if(id === 'marker-barcode') playBeep(880, 0.28);
-
-        if(found.size === requiredMarkers.length){
-          setTimeout(()=>{
-            finalScreen.style.display = 'flex';
-            playBeep(880, 0.18); setTimeout(()=> playBeep(660,0.18), 200); setTimeout(()=> playBeep(990,0.22),420);
-            announce('Has encontrado el tesoro. Felicitaciones.');
-          }, 700);
-        }
-      }
-
-      function onMarkerLost(id){
-        // not removing from found; only informing
-        showMessage('Marcador perdido: ' + markerNames[id]);
-      }
-
-      // Register events
-      requiredMarkers.forEach(id => {
-        const marker = document.getElementById(id);
-        if(!marker) { console.warn('No se encontró el marker con id', id); return; }
-        marker.addEventListener('markerFound', ()=> onMarkerFound(id));
-        marker.addEventListener('markerLost', ()=> onMarkerLost(id));
-      });
-
-      // controls
-      btnReset.addEventListener('click', ()=>{
-        if(!confirm('¿Reiniciar progreso? Esta acción no se puede deshacer.')) return;
-        found = new Set(); persist(); updateHUD(); showMessage('Progreso reiniciado');
-        finalScreen.style.display = 'none';
-      });
-      btnHelp.addEventListener('click', ()=>{
-        // abrir página de ayuda para imprimir marcadores / ejemplos
-        window.open('https://ar-js-org.github.io/AR.js-Docs/marker-training/', '_blank');
-      });
-      btnShare.addEventListener('click', ()=>{
-        const shareUrl = new URL(window.location.href.split('?')[0]);
-        if(found.size) shareUrl.searchParams.set('found', Array.from(found).join(','));
-        else shareUrl.searchParams.delete('found');
-        navigator.clipboard?.writeText(shareUrl.toString()).then(()=> showMessage('Enlace copiado al portapapeles'), ()=>{ prompt('Copia este enlace manualmente:', shareUrl.toString()); });
-      });
-
-      closeFinal.addEventListener('click', ()=> { finalScreen.style.display='none'; });
-
-      // Inicializar HUD
-      updateHUD();
-      console.log('Escena cargada. Marcadores requeridos:', requiredMarkers);
+      const msg = document.getElementById('message');
+      const marker = document.getElementById('marker-hiro');
+      if(!marker){ console.warn('No se encontró marker-hiro'); return; }
+      marker.addEventListener('markerFound', ()=>{ msg.style.display = 'block'; });
+      marker.addEventListener('markerLost', ()=>{ msg.style.display = 'none'; });
+      console.log('Escena mínima lista: escanea el marcador hiro');
     })();
   </script>
-
-  <!-- Instrucciones rápidas para deploy en GitHub Pages:
-       1) Crear repo en GitHub y subir este index.html.
-       2) En Settings > Pages seleccionar rama main (o gh-pages) y carpeta / (root).
-       3) Esperar que GitHub publique la URL y abrir desde el celular (https en general).
-
-       NOTAS:
-       - Este ejemplo usa los marcadores preset "hiro" y "kanji" y un barcode (value=5). Si quieren PATTERN personalizados,
-         pueden generar archivos .patt en https://github.com/AR-js-org/AR.js/tree/master/three.js/examples/marker-training
-         o con herramientas de pattern-maker y luego servirlos junto a la web.
-       - Para pruebas rápidas se pueden imprimir los marcadores "hiro" y "kanji" desde la documentación de AR.js.
-  -->
 </body>
 </html>

@@ -3,67 +3,76 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>🔎 Búsqueda del Tesoro AR</title>
+  <title>Búsqueda del Tesoro AR.js</title>
 
   <!-- Librerías -->
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.0/aframe/build/aframe-ar.min.js"></script>
 
   <style>
-    html, body {
-      margin: 0;
-      height: 100%;
-      overflow: hidden;
-      background: #000;
-    }
-
-    a-scene {
+    html, body { margin: 0; height: 100%; overflow: hidden; }
+    #ui {
       position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 1; /* cámara al fondo */
-    }
-
-    /* HUD flotante */
-    #hud {
-      position: fixed;
-      left: 50%;
-      bottom: 20px;
+      top: 10px; left: 50%;
       transform: translateX(-50%);
-      background: rgba(0,0,0,0.4);
-      color: white;
-      font-family: 'Segoe UI', sans-serif;
-      padding: 8px 14px;
-      border-radius: 10px;
-      text-align: center;
-      z-index: 100;
-      pointer-events: none;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      font-family: sans-serif;
     }
-
+    #message {
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 8px;
+      max-width: 90%;
+      text-align: center;
+      font-size: 15px;
+    }
+    #hint {
+      background: rgba(255,255,255,0.85);
+      color: #111;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      text-align: center;
+    }
     #final {
       position: fixed;
       inset: 0;
       display: none;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
       background: rgba(0,0,0,0.85);
-      color: gold;
-      font-size: 2em;
-      font-weight: bold;
-      z-index: 200;
-      animation: fadeIn 2s;
+      color: #fff;
+      flex-direction: column;
+      font-family: sans-serif;
+      z-index: 20;
     }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+    #final button {
+      margin-top: 12px;
+      padding: 8px 14px;
+      border: none;
+      border-radius: 8px;
+      background: #FFD700;
+      cursor: pointer;
     }
   </style>
 </head>
 
 <body>
-  <div id="hud">🧭 Escaneá el marcador inicial (HIRO)...</div>
-  <div id="final">🎉 ¡Encontraste el tesoro! 🏆</div>
+  <div id="ui">
+    <div id="message">🔍 Apunta al primer marcador: <b>HIRO</b></div>
+    <div id="hint">Pista: Está al inicio de la aventura.</div>
+  </div>
+
+  <div id="final">
+    <h2>🎉 ¡Tesoro encontrado! 🎉</h2>
+    <p>Completaste la búsqueda del tesoro en el Edificio Sacré Coeur.</p>
+    <button onclick="location.reload()">Jugar otra vez</button>
+  </div>
 
   <a-scene
     vr-mode-ui="enabled: false"
@@ -71,25 +80,26 @@
     renderer="logarithmicDepthBuffer: true;"
     arjs="sourceType: webcam; debugUIEnabled: false;">
     
-    <!-- Marcador 1: HIRO (inicio) -->
-    <a-marker id="hiroMarker" preset="hiro">
-      <a-text value="Inicio del juego" color="yellow" position="0 0.8 0" align="center"></a-text>
-      <a-box position="0 0.25 0" color="orange" depth="0.4" height="0.4" width="0.4"
+    <!-- 1️⃣ Marcador HIRO -->
+    <a-marker id="hiro" preset="hiro">
+      <a-box position="0 0.25 0" depth="0.3" height="0.3" width="0.3"
+             color="#FFD700"
              animation="property: rotation; to: 0 360 0; loop: true; dur: 3000"></a-box>
+      <a-text value="Inicio de la aventura" position="0 0.8 0" rotation="-90 0 0" align="center" color="#FFF"></a-text>
     </a-marker>
 
-    <!-- Marcador 2: KANJI -->
-    <a-marker id="kanjiMarker" preset="kanji">
-      <a-sphere color="deepskyblue" radius="0.3" position="0 0.25 0"
-                animation="property: position; to: 0 0.5 0; dir: alternate; loop: true; dur: 1000"></a-sphere>
-      <a-text value="Pista intermedia" color="lightblue" position="0 0.8 0" align="center"></a-text>
+    <!-- 2️⃣ Marcador KANJI -->
+    <a-marker id="kanji" preset="kanji">
+      <a-sphere position="0 0.35 0" radius="0.25" color="#00BFFF"
+                animation="property: scale; dir: alternate; to: 1.3 1.3 1.3; loop: true; dur: 1000"></a-sphere>
+      <a-text value="Segunda pista: busca la escalera principal" position="0 0.9 0" rotation="-90 0 0" align="center" color="#FFF" width="2"></a-text>
     </a-marker>
 
-    <!-- Marcador 3: letterA -->
-    <a-marker id="aMarker" type="pattern" preset="letterA">
-      <a-torus-knot color="lime" radius="0.3" position="0 0.25 0"
-                    animation="property: rotation; to: 360 360 0; loop: true; dur: 2500"></a-torus-knot>
-      <a-text value="Tesoro" color="lime" position="0 0.8 0" align="center"></a-text>
+    <!-- 3️⃣ Marcador LETTER A -->
+    <a-marker id="letterA" type="pattern" url="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/three.js/examples/marker-training/examples/pattern-files/pattern-letterA.patt">
+      <a-cone position="0 0.4 0" height="0.8" radius-bottom="0.3" color="#32CD32"
+              animation="property: rotation; to: 0 360 0; loop: true; dur: 2500"></a-cone>
+      <a-text value="Última pista: el tesoro está cerca del aula!" position="0 1 0" rotation="-90 0 0" align="center" color="#FFF" width="2"></a-text>
     </a-marker>
 
     <a-entity camera></a-entity>
@@ -97,43 +107,73 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      const hud = document.getElementById("hud");
-      const final = document.getElementById("final");
+      const msg = document.getElementById("message");
+      const hint = document.getElementById("hint");
+      const finalScreen = document.getElementById("final");
 
-      const sequence = ["hiroMarker", "kanjiMarker", "aMarker"];
-      let currentStep = 0;
+      const order = ["hiro", "kanji", "letterA"];
+      let currentIndex = 0;
 
-      const updateHUD = (text) => {
-        hud.textContent = text;
+      const hints = {
+        hiro: "Inicio de la aventura.",
+        kanji: "Busca la escalera principal.",
+        letterA: "El tesoro está cerca del aula."
       };
 
-      const handleMarker = (id) => {
-        const expected = sequence[currentStep];
+      function showMessage(text) {
+        msg.innerHTML = text;
+      }
+
+      function showHint(id) {
+        hint.textContent = "Pista: " + hints[id];
+      }
+
+      function beep(f = 440, t = 0.15) {
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.frequency.value = f; osc.start();
+          gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + t);
+          setTimeout(() => { osc.stop(); ctx.close(); }, (t + 0.05) * 1000);
+        } catch {}
+      }
+
+      function markerFound(id) {
+        const expected = order[currentIndex];
         if (id === expected) {
-          currentStep++;
-          if (currentStep < sequence.length) {
-            const nextName =
-              sequence[currentStep] === "kanjiMarker"
-                ? "KANJI"
-                : sequence[currentStep] === "aMarker"
-                ? "LetterA"
-                : "Desconocido";
-            updateHUD(`✅ ¡Bien! Ahora buscá el marcador ${nextName}...`);
+          beep(600 + currentIndex * 100, 0.2);
+          showMessage(`✅ Pista ${currentIndex + 1} encontrada (${id.toUpperCase()})`);
+          currentIndex++;
+          if (currentIndex < order.length) {
+            const next = order[currentIndex];
+            showHint(next);
+            showMessage(`🔍 Busca el siguiente marcador: ${next.toUpperCase()}`);
           } else {
-            updateHUD("🎉 ¡Todos los marcadores encontrados!");
-            final.style.display = "flex";
+            setTimeout(() => {
+              finalScreen.style.display = "flex";
+              beep(660, 0.2); setTimeout(()=>beep(880,0.2),250); setTimeout(()=>beep(660,0.25),500);
+            }, 600);
           }
-        } else if (currentStep < sequence.length) {
-          updateHUD("⚠️ Ese marcador no corresponde todavía...");
+        } else if (order.includes(id)) {
+          // Si encontró uno fuera de orden
+          const next = order[currentIndex];
+          showMessage(`⚠️ Aún no puedes usar ${id.toUpperCase()}. Primero busca: ${next.toUpperCase()}`);
+          showHint(next);
+          beep(200, 0.2);
         }
-      };
+      }
 
-      sequence.forEach((id) => {
-        const marker = document.getElementById(id);
-        marker.addEventListener("markerFound", () => handleMarker(id));
+      order.forEach(id => {
+        const m = document.getElementById(id);
+        if (!m) return;
+        m.addEventListener("markerFound", () => markerFound(id));
       });
 
-      console.log("🧭 Juego AR listo. Orden: HIRO → KANJI → LetterA");
+      showHint(order[currentIndex]);
     });
   </script>
 </body>

@@ -14,26 +14,30 @@
       margin: 0;
       height: 100%;
       overflow: hidden;
-      background: black;
+      background: #000;
     }
 
-    /* Interfaz fija en pantalla */
-    #ui {
+    a-scene {
       position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      color: white;
-      font-family: 'Segoe UI', sans-serif;
-      text-align: center;
-      padding: 10px;
-      background: rgba(0, 0, 0, 0.6);
-      z-index: 10;
+      z-index: 1; /* cámara al fondo */
     }
 
-    #status {
-      font-size: 1.2em;
-      margin-top: 5px;
+    /* HUD flotante */
+    #hud {
+      position: fixed;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.4);
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 8px 14px;
+      border-radius: 10px;
+      text-align: center;
+      z-index: 100;
+      pointer-events: none;
     }
 
     #final {
@@ -42,11 +46,11 @@
       display: none;
       justify-content: center;
       align-items: center;
-      background: rgba(0, 0, 0, 0.85);
+      background: rgba(0,0,0,0.85);
       color: gold;
       font-size: 2em;
       font-weight: bold;
-      z-index: 20;
+      z-index: 200;
       animation: fadeIn 2s;
     }
 
@@ -58,15 +62,9 @@
 </head>
 
 <body>
-  <!-- UI fija -->
-  <div id="ui">
-    <div>🧭 <b>Búsqueda del Tesoro AR</b></div>
-    <div id="status">Escaneá el marcador inicial (HIRO)...</div>
-  </div>
-
+  <div id="hud">🧭 Escaneá el marcador inicial (HIRO)...</div>
   <div id="final">🎉 ¡Encontraste el tesoro! 🏆</div>
 
-  <!-- Escena AR -->
   <a-scene
     vr-mode-ui="enabled: false"
     embedded
@@ -99,37 +97,43 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      const status = document.getElementById("status");
+      const hud = document.getElementById("hud");
       const final = document.getElementById("final");
 
       const sequence = ["hiroMarker", "kanjiMarker", "aMarker"];
       let currentStep = 0;
 
-      const showMessage = (text) => {
-        status.textContent = text;
+      const updateHUD = (text) => {
+        hud.textContent = text;
       };
 
-      const checkStep = (markerId) => {
+      const handleMarker = (id) => {
         const expected = sequence[currentStep];
-        if (markerId === expected) {
+        if (id === expected) {
           currentStep++;
           if (currentStep < sequence.length) {
-            showMessage(`✅ ¡Bien! Ahora buscá el marcador siguiente (${sequence[currentStep]})`);
+            const nextName =
+              sequence[currentStep] === "kanjiMarker"
+                ? "KANJI"
+                : sequence[currentStep] === "aMarker"
+                ? "LetterA"
+                : "Desconocido";
+            updateHUD(`✅ ¡Bien! Ahora buscá el marcador ${nextName}...`);
           } else {
-            showMessage("🎉 ¡Todos encontrados!");
+            updateHUD("🎉 ¡Todos los marcadores encontrados!");
             final.style.display = "flex";
           }
-        } else {
-          showMessage("⚠️ Ese marcador aún no corresponde...");
+        } else if (currentStep < sequence.length) {
+          updateHUD("⚠️ Ese marcador no corresponde todavía...");
         }
       };
 
-      sequence.forEach(id => {
+      sequence.forEach((id) => {
         const marker = document.getElementById(id);
-        marker.addEventListener("markerFound", () => checkStep(id));
+        marker.addEventListener("markerFound", () => handleMarker(id));
       });
 
-      console.log("🧭 Juego AR listo. Escaneá los marcadores en orden: HIRO → KANJI → LetterA");
+      console.log("🧭 Juego AR listo. Orden: HIRO → KANJI → LetterA");
     });
   </script>
 </body>

@@ -11,6 +11,8 @@
 
   <style>
     html, body { margin: 0; height: 100%; overflow: hidden; }
+    
+    /* Mensajes temporales */
     #message {
       position: fixed;
       top: 12px; left: 50%;
@@ -23,6 +25,8 @@
       display: none;
       z-index: 10;
     }
+    
+    /* Pantalla final */
     #final {
       position: fixed;
       inset: 0;
@@ -43,6 +47,99 @@
       background: #FFD700;
       cursor: pointer;
     }
+    
+    /* UI de progreso y pistas */
+    #gameUI {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      z-index: 15;
+    }
+    
+    #progressBar {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      right: 20px;
+      height: 8px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    #progressFill {
+      height: 100%;
+      background: linear-gradient(90deg, #4CAF50, #8BC34A);
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+    
+    #timer {
+      position: fixed;
+      top: 40px;
+      left: 20px;
+      color: #fff;
+      font-family: sans-serif;
+      font-size: 14px;
+      background: rgba(0,0,0,0.7);
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+    
+    #cluePanel {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      padding: 16px;
+      border-radius: 12px;
+      font-family: sans-serif;
+      display: none;
+      pointer-events: auto;
+    }
+    
+    #cluePanel h3 {
+      margin: 0 0 8px 0;
+      color: #FFD700;
+      font-size: 16px;
+    }
+    
+    #cluePanel p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    
+    #instructions {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.9);
+      color: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      font-family: sans-serif;
+      text-align: center;
+      max-width: 300px;
+      z-index: 25;
+    }
+    
+    #instructions button {
+      margin-top: 12px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      background: #FFD700;
+      color: #000;
+      cursor: pointer;
+      font-weight: bold;
+    }
   </style>
 </head>
 
@@ -51,7 +148,29 @@
   <div id="final">
     <h2>🎉 ¡Tesoro encontrado! 🎉</h2>
     <p>Completaste la búsqueda del tesoro en el Edificio Sacré Coeur.</p>
+    <p id="finalTime">Tiempo: <span id="finalTimeValue">0:00</span></p>
     <button onclick="location.reload()">Jugar otra vez</button>
+  </div>
+  
+  <!-- Instrucciones iniciales -->
+  <div id="instructions">
+    <h3>🏴‍☠️ Búsqueda del Tesoro AR</h3>
+    <p>¡Bienvenido a la aventura en el Edificio Sacré Coeur!</p>
+    <p>Debes encontrar los marcadores en orden:</p>
+    <p>1️⃣ HIRO → 2️⃣ KANJI → 3️⃣ LETTER A</p>
+    <button onclick="startGame()">¡Comenzar!</button>
+  </div>
+  
+  <!-- UI del juego -->
+  <div id="gameUI">
+    <div id="progressBar">
+      <div id="progressFill"></div>
+    </div>
+    <div id="timer">Tiempo: 0:00</div>
+    <div id="cluePanel">
+      <h3 id="clueTitle">Pista</h3>
+      <p id="clueText">Escanea el primer marcador HIRO para comenzar</p>
+    </div>
   </div>
 
   <a-scene
@@ -65,75 +184,162 @@
       <a-box position="0 0.25 0" depth="0.3" height="0.3" width="0.3"
              color="#FFD700"
              animation="property: rotation; to: 0 360 0; loop: true; dur: 3000"></a-box>
-      <a-text value="Inicio de la aventura" position="0 0.8 0" rotation="-90 0 0" align="center" color="#FFF"></a-text>
+      <a-text value="¡Bienvenido!" position="0 0.8 0" rotation="-90 0 0" align="center" color="#FFF"></a-text>
     </a-marker>
 
     <!-- 2️⃣ Marcador KANJI -->
     <a-marker id="kanji" preset="kanji">
       <a-sphere position="0 0.35 0" radius="0.25" color="#00BFFF"
                 animation="property: scale; dir: alternate; to: 1.3 1.3 1.3; loop: true; dur: 1000"></a-sphere>
-      <a-text value="Segunda pista: busca la escalera principal" position="0 0.9 0" rotation="-90 0 0" align="center" color="#FFF" width="2"></a-text>
+      <a-text value="¡Segunda pista!" position="0 0.9 0" rotation="-90 0 0" align="center" color="#FFF" width="2"></a-text>
     </a-marker>
 
     <!-- 3️⃣ Marcador LETTER A -->
     <a-marker id="letterA" type="pattern" url="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/three.js/examples/marker-training/examples/pattern-files/pattern-letterA.patt">
       <a-cone position="0 0.4 0" height="0.8" radius-bottom="0.3" color="#32CD32"
               animation="property: rotation; to: 0 360 0; loop: true; dur: 2500"></a-cone>
-      <a-text value="Última pista: el tesoro está cerca del aula!" position="0 1 0" rotation="-90 0 0" align="center" color="#FFF" width="2"></a-text>
+      <a-text value="¡Última pista!" position="0 1 0" rotation="-90 0 0" align="center" color="#FFF" width="2"></a-text>
     </a-marker>
 
     <a-entity camera></a-entity>
   </a-scene>
 
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
+    // Variables globales del juego
+    let gameState = {
+      currentStep: 0, // 0: HIRO, 1: KANJI, 2: LETTER A
+      startTime: null,
+      timerInterval: null,
+      gameStarted: false
+    };
+
+    const clues = [
+      {
+        title: "🏴‍☠️ ¡Bienvenido a la aventura!",
+        text: "Busca y escanea el primer marcador HIRO para comenzar tu búsqueda del tesoro en el Edificio Sacré Coeur."
+      },
+      {
+        title: "🔍 ¡Primer marcador encontrado!",
+        text: "¡Excelente! Ahora busca el marcador KANJI cerca de la escalera principal del edificio."
+      },
+      {
+        title: "🎯 ¡Segunda pista encontrada!",
+        text: "¡Muy bien! Ahora busca el último marcador LETTER A cerca del aula para encontrar el tesoro."
+      }
+    ];
+
+    function startGame() {
+      document.getElementById("instructions").style.display = "none";
+      document.getElementById("gameUI").style.display = "block";
+      document.getElementById("cluePanel").style.display = "block";
+      
+      gameState.startTime = Date.now();
+      gameState.gameStarted = true;
+      
+      startTimer();
+      updateProgress();
+      showClue(0);
+      
+      console.log("🎯 Juego iniciado. Busca el marcador HIRO primero.");
+    }
+
+    function startTimer() {
+      gameState.timerInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
+        const minutes = Math.floor(elapsed / 60);
+        const seconds = elapsed % 60;
+        const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        document.getElementById("timer").textContent = `Tiempo: ${timeString}`;
+      }, 1000);
+    }
+
+    function updateProgress() {
+      const progress = (gameState.currentStep / 3) * 100;
+      document.getElementById("progressFill").style.width = `${progress}%`;
+    }
+
+    function showClue(step) {
+      if (step < clues.length) {
+        document.getElementById("clueTitle").textContent = clues[step].title;
+        document.getElementById("clueText").textContent = clues[step].text;
+      }
+    }
+
+    function showMessage(text, timeout = 2000) {
       const msg = document.getElementById("message");
-      const finalScreen = document.getElementById("final");
+      msg.textContent = text;
+      msg.style.display = "block";
+      setTimeout(() => (msg.style.display = "none"), timeout);
+    }
+
+    function beep(f = 440, t = 0.15) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = f; osc.start();
+        gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + t);
+        setTimeout(() => { osc.stop(); ctx.close(); }, (t + 0.05) * 1000);
+      } catch (e) { console.warn("No se pudo reproducir sonido", e); }
+    }
+
+    function markerFound(id) {
+      if (!gameState.gameStarted) return;
+      
+      const expectedOrder = ["hiro", "kanji", "letterA"];
+      const expectedMarker = expectedOrder[gameState.currentStep];
+      
+      if (id !== expectedMarker) {
+        showMessage(`❌ Debes encontrar el marcador ${expectedMarker.toUpperCase()} primero`);
+        return;
+      }
+      
+      gameState.currentStep++;
+      showMessage(`✅ ¡${id.toUpperCase()} encontrado! (${gameState.currentStep}/3)`);
+      beep(700 - gameState.currentStep * 100, 0.2);
+      
+      updateProgress();
+      
+      if (gameState.currentStep < 3) {
+        showClue(gameState.currentStep);
+      } else {
+        // Juego completado
+        clearInterval(gameState.timerInterval);
+        const finalTime = Math.floor((Date.now() - gameState.startTime) / 1000);
+        const minutes = Math.floor(finalTime / 60);
+        const seconds = finalTime % 60;
+        const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        
+        document.getElementById("finalTimeValue").textContent = timeString;
+        
+        setTimeout(() => {
+          document.getElementById("final").style.display = "flex";
+          beep(660, 0.2); 
+          setTimeout(() => beep(880, 0.2), 250); 
+          setTimeout(() => beep(660, 0.25), 500);
+        }, 1000);
+      }
+    }
+
+    function markerLost(id) {
+      if (!gameState.gameStarted) return;
+      showMessage("📱 Marcador perdido - mantén la cámara estable");
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
       const markers = ["hiro", "kanji", "letterA"];
-      const found = new Set();
-
-      function showMessage(text, timeout = 2000) {
-        msg.textContent = text;
-        msg.style.display = "block";
-        setTimeout(() => (msg.style.display = "none"), timeout);
-      }
-
-      function beep(f = 440, t = 0.15) {
-        try {
-          const ctx = new (window.AudioContext || window.webkitAudioContext)();
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.connect(gain); gain.connect(ctx.destination);
-          osc.frequency.value = f; osc.start();
-          gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.01);
-          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + t);
-          setTimeout(() => { osc.stop(); ctx.close(); }, (t + 0.05) * 1000);
-        } catch (e) { console.warn("No se pudo reproducir sonido", e); }
-      }
-
-      function markerFound(id) {
-        if (found.has(id)) return;
-        found.add(id);
-        showMessage(`Pista encontrada (${found.size}/3)`);
-        beep(700 - found.size * 100, 0.2);
-
-        if (found.size === 3) {
-          setTimeout(() => {
-            finalScreen.style.display = "flex";
-            beep(660, 0.2); setTimeout(()=>beep(880,0.2),250); setTimeout(()=>beep(660,0.25),500);
-          }, 600);
-        }
-      }
-
+      
       markers.forEach(id => {
         const m = document.getElementById(id);
         if (!m) return console.warn("No se encontró marker:", id);
         m.addEventListener("markerFound", () => markerFound(id));
-        m.addEventListener("markerLost", () => showMessage("Marcador perdido"));
+        m.addEventListener("markerLost", () => markerLost(id));
       });
 
-      console.log("🎯 Escena lista: buscá los tres marcadores (hiro, kanji, letterA).");
+      console.log("🎯 Escena lista. Presiona 'Comenzar' para iniciar la búsqueda del tesoro.");
     });
   </script>
 </body>
